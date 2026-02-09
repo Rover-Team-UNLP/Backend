@@ -10,7 +10,7 @@ from typing import Any
 from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 
-from .. import state
+import state
 
 logger = logging.getLogger(__name__)
 

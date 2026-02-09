@@ -12,8 +12,8 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import config  # noqa: F401 - carga .env.local
-from .routers import chat, video, websocket
+import config  # noqa: F401 - carga .env.local
+from routers import chat, video, websocket
 
 logging.basicConfig(
     level=logging.INFO,

@@ -18,14 +18,10 @@ Para probar sin ESP física se puede usar el **simulador ESP** (ver más abajo).
 ```bash
 cd backend
 pip install -r requirements.txt
-python main.py
-```
-
-El servidor queda escuchando en el **puerto 8080**. Otra forma de arrancar:
-
-```bash
 uvicorn main:app --host 0.0.0.0 --port 8080
 ```
+
+El servidor queda escuchando en el **puerto 8080**.
 
 ## URLs WebSocket
 
@@ -38,7 +34,7 @@ En el firmware de la ESP hay que configurar `WEBSOCKET_URI` en `web_socket.c` co
 
 Para probar que el front y el backend funcionan bien sin tener una ESP32 conectada:
 
-1. Arrancar el servidor (`python main.py`).
+1. Arrancar el servidor (`uvicorn main:app --host 0.0.0.0 --port 8080`).
 2. Arrancar el front (desde la carpeta `front/`: `pnpm dev`).
 3. En otra terminal, desde `backend/`:
 
@@ -46,7 +42,7 @@ Para probar que el front y el backend funcionan bien sin tener una ESP32 conecta
    python esp_simulator.py
    ```
 
-El simulador se conecta a `/ws/esp` como si fuera la ESP. En el front debería aparecer "ESP conectada" y, al usar las flechas o W/A/S/D, en la terminal del simulador verás los comandos que recibiría la ESP (por ejemplo `[#1] id=1 cmd=0 (MOVE_FORWARD) params=[]`).
+El simulador se conecta a `/ws/esp` como si fuera la ESP. En el front debería aparecer "ESP conectada" y, al usar las flechas o W/A/S/D, en la terminal del simulador verás los comandos que recibiría la ESP (por ejemplo `[#1] id=1 cmd=0 (MOVE_FORWARD) intensity=100`).
 
 Opciones del simulador:
 
@@ -55,6 +51,6 @@ Opciones del simulador:
 
 ## Protocolo (resumen)
 
-- El front envía JSON: `{ "id": number, "cmd": 0|1|2|3, "params": number[] }` (cmd: 0=adelante, 1=atrás, 2=izq, 3=der).
+- El front envía JSON: `{ "id": number, "cmd": 0|1|2|3, "intensity": number }` (cmd: 0=adelante, 1=atrás, 2=izq, 3=der; intensity: valor numérico de intensidad).
 - El servidor reenvía ese JSON a la ESP y responde al front con `{ "type": "ack", "id": ... }` o `{ "type": "error", "message": "...", "id": ... }`.
 - El servidor avisa al front cuando la ESP se conecta o desconecta: `{ "type": "esp_status", "connected": true|false }`.

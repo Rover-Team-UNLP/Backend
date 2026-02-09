@@ -8,8 +8,8 @@ from typing import Any
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from .. import state
-from ..protocol import validate_rover_message
+import state
+from protocol import validate_rover_message
 
 logger = logging.getLogger(__name__)
 
@@ -54,10 +54,10 @@ async def websocket_client(websocket: WebSocket) -> None:
                 )
                 continue
             logger.info(
-                "CMD recibido: id=%s cmd=%s params=%s",
+                "CMD recibido: id=%s cmd=%s intensity=%s",
                 data.get("id"),
                 data.get("cmd"),
-                data.get("params"),
+                data.get("intensity"),
             )
             ok, err = validate_rover_message(data)
             if not ok:
@@ -82,10 +82,10 @@ async def websocket_client(websocket: WebSocket) -> None:
             try:
                 await current_esp.send_text(raw)
                 logger.info(
-                    "Reenviado a ESP: id=%d cmd=%d params=%s",
+                    "Reenviado a ESP: id=%d cmd=%d intensity=%s",
                     msg_id,
                     int(data["cmd"]),
-                    data.get("params"),
+                    data.get("intensity"),
                 )
                 await broadcast_to_clients({"type": "ack", "id": msg_id})
             except Exception as e:

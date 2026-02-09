@@ -20,7 +20,6 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 logger = logging.getLogger(__name__)
 
 CMD_BUFFER_LEN = 10
-CMD_PARAMS_LEN = 10
 CMD_NAMES = {
     0: "MOVE_FORWARD",
     1: "MOVE_BACKWARDS",
@@ -33,7 +32,7 @@ DEFAULT_URI = "ws://localhost:8080/ws/esp"
 
 def parse_and_validate(raw_json: str) -> tuple[bool, dict[str, Any] | None, str | None]:
     """
-    Misma lógica que parse_json en la ESP: cmd (número), id (número), params (array, max 10 números).
+    Misma lógica que parse_json en la ESP: cmd (número), id (número), intensity (número).
     Devuelve (ok, cmd_dict, error_msg).
     """
     try:
@@ -62,19 +61,11 @@ def parse_and_validate(raw_json: str) -> tuple[bool, dict[str, Any] | None, str 
     if id_int != id_val or id_int < 1 or id_int > 65535:
         return False, None, "'id' debe ser entero entre 1 y 65535"
 
-    params = data.get("params")
-    if params is None:
-        return False, None, "Falta campo 'params'"
-    if not isinstance(params, list):
-        return False, None, "'params' debe ser un array"
-    if len(params) > CMD_PARAMS_LEN:
-        return False, None, f"'params' tiene más de {CMD_PARAMS_LEN} elementos"
-
-    params_ok = []
-    for i, p in enumerate(params):
-        if not isinstance(p, (int, float)) or (isinstance(p, float) and math.isnan(p)):
-            return False, None, f"params[{i}] debe ser un número"
-        params_ok.append(float(p) if isinstance(p, (int, float)) else p)
+    intensity = data.get("intensity")
+    if intensity is None:
+        return False, None, "Falta campo 'intensity'"
+    if not isinstance(intensity, (int, float)) or (isinstance(intensity, float) and math.isnan(intensity)):
+        return False, None, "'intensity' debe ser un número"
 
     if cmd_int not in CMD_NAMES:
         logger.warning("cmd=%d no está en rover_cmd_type_t (0-3); la ESP lo aceptaría igual.", cmd_int)
@@ -82,8 +73,7 @@ def parse_and_validate(raw_json: str) -> tuple[bool, dict[str, Any] | None, str 
     return True, {
         "id": id_int,
         "cmd": cmd_int,
-        "params": params_ok,
-        "total_params": len(params_ok),
+        "intensity": float(intensity),
     }, None
 
 
@@ -140,12 +130,12 @@ async def run_simulator(uri: str, reconnect: bool) -> None:
                     total_commands += 1
                     name = CMD_NAMES.get(cmd_out["cmd"], f"cmd_{cmd_out['cmd']}")
                     logger.info(
-                        "[#%d] id=%s cmd=%s (%s) params=%s",
+                        "[#%d] id=%s cmd=%s (%s) intensity=%s",
                         total_commands,
                         cmd_out["id"],
                         cmd_out["cmd"],
                         name,
-                        cmd_out["params"],
+                        cmd_out["intensity"],
                     )
         except websockets.exceptions.ConnectionClosed as e:
             logger.warning("Conexión cerrada: %s", e)

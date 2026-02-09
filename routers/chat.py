@@ -11,8 +11,8 @@ from fastapi import APIRouter, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from .. import state
-from ..config import get_openai_client
+import state
+from config import get_openai_client
 
 logger = logging.getLogger(__name__)
 
@@ -103,7 +103,7 @@ async def send_rover_command(cmd: int) -> dict[str, Any]:
     if current_esp is None:
         return {"success": False, "error": "ESP no conectada"}
 
-    command = {"id": msg_id, "cmd": cmd, "params": []}
+    command = {"id": msg_id, "cmd": cmd, "intensity": 1}
     try:
         await current_esp.send_text(json.dumps(command))
         logger.info("IA envió comando: id=%d cmd=%d", msg_id, cmd)
